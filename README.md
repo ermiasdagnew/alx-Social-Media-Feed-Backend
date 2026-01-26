@@ -1,7 +1,7 @@
-# Social Media Feed Backend API
+# Social Media Feed Backend
 
 ## 📌 Overview
-The **Social Media Feed Backend API** is a RESTful backend service that powers a simple social media platform.  
+The **Social Media Feed Backend ** is a RESTful backend service that powers a simple social media platform.  
 It allows users to authenticate, create posts, view a feed, and interact with content using likes and comments.
 
 This project is built as part of **Project Nexus (Backend)** to demonstrate real-world backend engineering skills, including API design, authentication, database modeling, and deployment readiness.
