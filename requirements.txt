@@ -2,3 +2,4 @@ Django>=4.2
 djangorestframework>=3.14
 graphene-django>=3.2
 gunicorn>=20.1
+psycopg2-binary>=2.9  # if using Postgres
