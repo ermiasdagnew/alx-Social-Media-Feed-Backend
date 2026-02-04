@@ -14,12 +14,8 @@ SECRET_KEY = os.environ.get(
     "django-insecure-temp-key-for-build-only"
 )
 
-DEBUG = os.environ.get("DEBUG", "False") == "True"
+DEBUG = os.environ.get("DEBUG", "True") == "True"
 
-# -----------------------------
-# ALLOWED_HOSTS
-# -----------------------------
-# Add your Render URL here for deployment
 ALLOWED_HOSTS = os.environ.get(
     "ALLOWED_HOSTS",
     "localhost,127.0.0.1,alx-social-media-feed-backend.onrender.com"
@@ -65,17 +61,17 @@ ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # --------------------------------------------------
-# TEMPLATES (required for admin)
+# TEMPLATES
 # --------------------------------------------------
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # optional if you have templates
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
-                'django.template.context_processors.request',  # REQUIRED for admin
+                'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -84,7 +80,7 @@ TEMPLATES = [
 ]
 
 # --------------------------------------------------
-# DATABASE (SQLite – good for ALX project)
+# DATABASE
 # --------------------------------------------------
 DATABASES = {
     'default': {
@@ -94,7 +90,7 @@ DATABASES = {
 }
 
 # --------------------------------------------------
-# AUTH / PASSWORDS
+# PASSWORD VALIDATION
 # --------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -112,7 +108,7 @@ USE_I18N = True
 USE_TZ = True
 
 # --------------------------------------------------
-# STATIC FILES (required for admin on Render)
+# STATIC FILES
 # --------------------------------------------------
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -126,17 +122,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # DJANGO REST FRAMEWORK
 # --------------------------------------------------
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-    'DEFAULT_PERMISSION_CLASSES': (
+    'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
-    ),
+    ],
 }
 
 # --------------------------------------------------
 # GRAPHQL
 # --------------------------------------------------
 GRAPHENE = {
-    "SCHEMA": "config.schema.schema"  # points to your schema.py
+    "SCHEMA": "config.schema.schema",
 }
