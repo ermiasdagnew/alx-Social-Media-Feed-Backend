@@ -16,9 +16,13 @@ SECRET_KEY = os.environ.get(
 
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
+# -----------------------------
+# ALLOWED_HOSTS
+# -----------------------------
+# Add your Render URL here for deployment
 ALLOWED_HOSTS = os.environ.get(
     "ALLOWED_HOSTS",
-    "localhost,127.0.0.1"
+    "localhost,127.0.0.1,alx-social-media-feed-backend.onrender.com"
 ).split(",")
 
 # --------------------------------------------------
@@ -61,17 +65,17 @@ ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # --------------------------------------------------
-# TEMPLATES (FIXES admin.E403)
+# TEMPLATES (required for admin)
 # --------------------------------------------------
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [BASE_DIR / 'templates'],  # optional if you have templates
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
-                'django.template.context_processors.request',  # REQUIRED
+                'django.template.context_processors.request',  # REQUIRED for admin
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -80,7 +84,7 @@ TEMPLATES = [
 ]
 
 # --------------------------------------------------
-# DATABASE (SQLite – OK for ALX project)
+# DATABASE (SQLite – good for ALX project)
 # --------------------------------------------------
 DATABASES = {
     'default': {
@@ -108,7 +112,7 @@ USE_I18N = True
 USE_TZ = True
 
 # --------------------------------------------------
-# STATIC FILES (REQUIRED FOR ADMIN ON RENDER)
+# STATIC FILES (required for admin on Render)
 # --------------------------------------------------
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -131,8 +135,8 @@ REST_FRAMEWORK = {
 }
 
 # --------------------------------------------------
-# GRAPHQL (if used)
+# GRAPHQL
 # --------------------------------------------------
 GRAPHENE = {
-    "SCHEMA": "config.schema.schema"
+    "SCHEMA": "config.schema.schema"  # points to your schema.py
 }
