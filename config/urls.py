@@ -1,18 +1,15 @@
-# feed/urls.py
-from django.urls import path
-from .views import login_view, create_post_view, get_posts_view, comment_post_view, like_post_view
+from django.contrib import admin
+from django.urls import path, include
+from django.http import HttpResponse
+from graphene_django.views import GraphQLView
+from django.views.decorators.csrf import csrf_exempt
+
+def home(request):
+    return HttpResponse("Server is running!")
 
 urlpatterns = [
-    # Authentication
-    path('auth/login/', login_view, name='login'),
-
-    # Posts
-    path('posts/', get_posts_view, name='get_posts'),       # GET all posts
-    path('posts/', create_post_view, name='create_post'),   # POST new post
-
-    # Comments
-    path('posts/<int:id>/comments/', comment_post_view, name='comment_post'),
-
-    # Likes
-    path('posts/<int:id>/like/', like_post_view, name='like_post'),
+    path('', home),  # Home page
+    path('admin/', admin.site.urls),
+    path('graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True))),
+    path('api/', include('feed.urls')),  # <-- This makes /api/auth/login/ work
 ]
