@@ -5,8 +5,10 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 
 from rest_framework import viewsets, permissions
-from .models import Post
+from django.shortcuts import get_object_or_404
+from .models import Post, Comment, Interaction
 from .serializers import PostSerializer
+
 
 # -------------------------
 # Login View
@@ -38,6 +40,7 @@ def login_view(request):
 
     return JsonResponse({"message": "Login successful"})
 
+
 # -------------------------
 # Post ViewSet
 # -------------------------
@@ -57,3 +60,49 @@ class PostViewSet(viewsets.ModelViewSet):
         # Automatically assign demo_user as author
         demo_user, _ = User.objects.get_or_create(username="demo_user")
         serializer.save(author=demo_user)
+
+
+# -------------------------
+# Add Comment to a Post
+# -------------------------
+@csrf_exempt
+def add_comment(request, id):
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
+
+    post = get_object_or_404(Post, id=id)
+    demo_user, _ = User.objects.get_or_create(username="demo_user")
+
+    try:
+        data = json.loads(request.body)
+        content = data.get("content") or data.get("comment")
+    except:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    comment = Comment.objects.create(post=post, author=demo_user, content=content)
+    return JsonResponse({
+        "id": comment.id,
+        "post": comment.post.id,
+        "author": comment.author.username,
+        "content": comment.content,
+        "created_at": comment.created_at
+    })
+
+
+# -------------------------
+# Like a Post
+# -------------------------
+@csrf_exempt
+def like_post(request, id):
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
+
+    post = get_object_or_404(Post, id=id)
+    demo_user, _ = User.objects.get_or_create(username="demo_user")
+
+    # Prevent duplicate likes
+    if Interaction.objects.filter(post=post, user=demo_user, interaction_type="LIKE").exists():
+        return JsonResponse({"message": "Post already liked"})
+
+    Interaction.objects.create(post=post, user=demo_user, interaction_type="LIKE")
+    return JsonResponse({"message": "Post liked"})
