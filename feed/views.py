@@ -16,9 +16,10 @@ def login_view(request):
     if request.method != "POST":
         return JsonResponse({"error": "Only POST allowed"}, status=405)
 
-    # Create demo_user safely if it doesn't exist
-    if not User.objects.filter(username="demo_user").exists():
-        User.objects.create_user(username="demo_user", password="DemoPass123")
+    # Ensure demo_user exists and password is always correct
+    demo_user, created = User.objects.get_or_create(username="demo_user")
+    demo_user.set_password("DemoPass123")
+    demo_user.save()
 
     try:
         data = json.loads(request.body)
