@@ -4,6 +4,13 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 
+from rest_framework import viewsets, permissions
+from .models import Post
+from .serializers import PostSerializer
+
+# -------------------------
+# Login View
+# -------------------------
 @csrf_exempt
 def login_view(request):
     if request.method != "POST":
@@ -29,12 +36,23 @@ def login_view(request):
         return JsonResponse({"error": "Invalid credentials"}, status=400)
 
     return JsonResponse({"message": "Login successful"})
+
+# -------------------------
+# Post ViewSet
+# -------------------------
 class PostViewSet(viewsets.ModelViewSet):
+    """
+    Handles:
+    - GET /api/posts/        → List all posts
+    - POST /api/posts/       → Create new post (auto assigns demo_user as author)
+    - PUT/PATCH /api/posts/<id>/ → Update post
+    - DELETE /api/posts/<id>/ → Delete post
+    """
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.AllowAny]  # no auth needed for demo
 
     def perform_create(self, serializer):
-        from django.contrib.auth.models import User
+        # Automatically assign demo_user as author
         demo_user, _ = User.objects.get_or_create(username="demo_user")
         serializer.save(author=demo_user)
