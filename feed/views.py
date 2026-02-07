@@ -4,14 +4,14 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 
-# Ensure demo_user exists
-if not User.objects.filter(username="demo_user").exists():
-    User.objects.create_user(username="demo_user", password="DemoPass123")
-
 @csrf_exempt
 def login_view(request):
     if request.method != "POST":
         return JsonResponse({"error": "Only POST allowed"}, status=405)
+
+    # Create demo_user safely if it doesn't exist
+    if not User.objects.filter(username="demo_user").exists():
+        User.objects.create_user(username="demo_user", password="DemoPass123")
 
     try:
         data = json.loads(request.body)
