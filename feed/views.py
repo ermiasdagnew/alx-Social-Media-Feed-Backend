@@ -1,107 +1,108 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
-
-from rest_framework import viewsets
-from rest_framework.decorators import action
-from rest_framework.response import Response
-
 import json
 
+from rest_framework import viewsets, permissions
+from django.shortcuts import get_object_or_404
 from .models import Post, Comment, Interaction
 from .serializers import PostSerializer
 
 
-# --------------------------------------------------
-# AUTH LOGIN
-# --------------------------------------------------
+# -------------------------
+# Login View
+# -------------------------
 @csrf_exempt
 def login_view(request):
     if request.method != "POST":
         return JsonResponse({"error": "Only POST allowed"}, status=405)
 
+    # Ensure demo_user exists and password is always correct
+    demo_user, created = User.objects.get_or_create(username="demo_user")
+    demo_user.set_password("DemoPass123")
+    demo_user.save()
+
     try:
         data = json.loads(request.body)
-    except json.JSONDecodeError:
+    except:
         return JsonResponse({"error": "Invalid JSON"}, status=400)
 
     username = data.get("username")
     password = data.get("password")
 
     if not username or not password:
-        return JsonResponse(
-            {"error": "Username and password required"},
-            status=400
-        )
-
-    # Demo-safe user creation
-    user, created = User.objects.get_or_create(username=username)
-    if created:
-        user.set_password(password)
-        user.save()
+        return JsonResponse({"error": "Missing username or password"}, status=400)
 
     user = authenticate(username=username, password=password)
-
-    if user is None:
-        return JsonResponse({"error": "Invalid credentials"}, status=401)
+    if not user:
+        return JsonResponse({"error": "Invalid credentials"}, status=400)
 
     return JsonResponse({"message": "Login successful"})
 
 
-# --------------------------------------------------
-# POSTS VIEWSET
-# --------------------------------------------------
-class PostViewSet(viewsets.ViewSet):
+# -------------------------
+# Post ViewSet
+# -------------------------
+class PostViewSet(viewsets.ModelViewSet):
+    """
+    Handles:
+    - GET /api/posts/        → List all posts
+    - POST /api/posts/       → Create new post (auto assigns demo_user as author)
+    - PUT/PATCH /api/posts/<id>/ → Update post
+    - DELETE /api/posts/<id>/ → Delete post
+    """
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [permissions.AllowAny]  # no auth needed for demo
 
-    # GET /api/posts/
-    def list(self, request):
-        posts = Post.objects.all().order_by("-created_at")
-        serializer = PostSerializer(posts, many=True)
-        return Response(serializer.data)
+    def perform_create(self, serializer):
+        # Automatically assign demo_user as author
+        demo_user, _ = User.objects.get_or_create(username="demo_user")
+        serializer.save(author=demo_user)
 
-    # POST /api/posts/
-    def create(self, request):
-        content = request.data.get("content")
 
-        if not content:
-            return Response(
-                {"error": "Post content required"},
-                status=400
-            )
+# -------------------------
+# Add Comment to a Post
+# -------------------------
+@csrf_exempt
+def add_comment(request, id):
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
 
-        post = Post.objects.create(content=content)
-        serializer = PostSerializer(post)
-        return Response(serializer.data, status=201)
+    post = get_object_or_404(Post, id=id)
+    demo_user, _ = User.objects.get_or_create(username="demo_user")
 
-    # POST /api/posts/{id}/comments/
-    @action(detail=True, methods=["post"])
-    def comments(self, request, pk=None):
-        post = get_object_or_404(Post, pk=pk)
-        content = request.data.get("comment")
+    try:
+        data = json.loads(request.body)
+        content = data.get("content") or data.get("comment")
+    except:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
 
-        if not content:
-            return Response(
-                {"error": "Comment content required"},
-                status=400
-            )
+    comment = Comment.objects.create(post=post, author=demo_user, content=content)
+    return JsonResponse({
+        "id": comment.id,
+        "post": comment.post.id,
+        "author": comment.author.username,
+        "content": comment.content,
+        "created_at": comment.created_at
+    })
 
-        Comment.objects.create(
-            post=post,
-            content=content
-        )
 
-        return Response({"message": "Comment added"}, status=201)
+# -------------------------
+# Like a Post
+# -------------------------
+@csrf_exempt
+def like_post(request, id):
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
 
-    # POST /api/posts/{id}/like/
-    @action(detail=True, methods=["post"])
-    def like(self, request, pk=None):
-        post = get_object_or_404(Post, pk=pk)
+    post = get_object_or_404(Post, id=id)
+    demo_user, _ = User.objects.get_or_create(username="demo_user")
 
-        Interaction.objects.create(
-            post=post,
-            interaction_type=Interaction.LIKE
-        )
+    # Prevent duplicate likes
+    if Interaction.objects.filter(post=post, user=demo_user, interaction_type="LIKE").exists():
+        return JsonResponse({"message": "Post already liked"})
 
-        return Response({"message": "Post liked"}, status=201)
+    Interaction.objects.create(post=post, user=demo_user, interaction_type="LIKE")
+    return JsonResponse({"message": "Post liked"})
