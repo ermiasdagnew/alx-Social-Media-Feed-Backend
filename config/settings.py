@@ -1,6 +1,5 @@
 from pathlib import Path
 import os
-import dj_database_url
 
 # --------------------------------------------------
 # BASE
@@ -15,7 +14,7 @@ SECRET_KEY = os.environ.get(
     "django-insecure-temp-key-for-build-only"
 )
 
-DEBUG = os.environ.get("DEBUG", "False") == "True"
+DEBUG = os.environ.get("DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = os.environ.get(
     "ALLOWED_HOSTS",
@@ -80,14 +79,13 @@ TEMPLATES = [
 ]
 
 # --------------------------------------------------
-# DATABASE (SQLite local → PostgreSQL on Render)
+# DATABASE
 # --------------------------------------------------
 DATABASES = {
-    "default": dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600,
-        ssl_require=not DEBUG,
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
 # --------------------------------------------------
@@ -101,7 +99,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # --------------------------------------------------
-# AUTHENTICATION
+# AUTHENTICATION (🔥 THIS FIXES LOGIN 🔥)
 # --------------------------------------------------
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
@@ -141,3 +139,5 @@ REST_FRAMEWORK = {
 GRAPHENE = {
     "SCHEMA": "config.schema.schema",
 }
+
+
